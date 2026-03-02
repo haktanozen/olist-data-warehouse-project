@@ -63,12 +63,6 @@ FROM bronze.orders_orders
 GROUP BY order_status
 ORDER BY cnt DESC;
 
--- 2d. dwh_create_date Check
-SELECT
-    SUM(CASE WHEN dwh_create_date IS NULL THEN 1 ELSE 0 END) AS null_create_date,
-    MIN(dwh_create_date) AS first_load,
-    MAX(dwh_create_date) AS last_load
-FROM bronze.orders_orders;
 
 
 -- =============================================================================
