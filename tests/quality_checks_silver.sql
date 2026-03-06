@@ -113,6 +113,9 @@ WHERE product_weight_g < 0
 SELECT COUNT(*) AS unknown_category_count
 FROM silver.catalog_products
 WHERE product_category_name_english = 'unknown';
+--623 products returned 'unknown' for product_category_name_english: NULL category (no match possible),
+--'pc_gamer' and 'portateis_cozinha_e_preparadores_de_alimentos' have no entry in translation table. 
+--Behavior is expected — ISNULL default applied correctly.
 
 
 -- ====================================================================
