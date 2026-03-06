@@ -9,6 +9,7 @@ Script Purpose:
     - Unwanted spaces or residual quote characters in string fields.
     - Data standardization and consistency.
     - Invalid or out-of-range values.
+    - Invalid date logic and ordering (e.g. purchase after delivery).
     - Referential integrity between related tables.
 
 Usage Notes:
@@ -186,18 +187,41 @@ SELECT DISTINCT order_status
 FROM silver.orders_orders
 ORDER BY order_status;
 
--- Check for invalid date orders (purchase after delivery)
--- Expectation: No Results
-SELECT *
-FROM silver.orders_orders
-WHERE order_purchase_timestamp > order_delivered_customer_date
-   OR order_purchase_timestamp > order_estimated_delivery_date;
-
 -- Check for NULL purchase timestamps (critical field)
 -- Expectation: No Results
 SELECT *
 FROM silver.orders_orders
 WHERE order_purchase_timestamp IS NULL;
+
+-- Check for invalid date order: purchase after approval
+-- Expectation: No Results
+SELECT *
+FROM silver.orders_orders
+WHERE order_purchase_timestamp > order_approved_at;
+
+-- Check for invalid date order: approval after carrier handoff
+-- Expectation: No Results
+SELECT *
+FROM silver.orders_orders
+WHERE order_approved_at > order_delivered_carrier_date;
+
+-- Check for invalid date order: carrier handoff after customer delivery
+-- Expectation: No Results
+SELECT *
+FROM silver.orders_orders
+WHERE order_delivered_carrier_date > order_delivered_customer_date;
+
+-- Check for invalid date order: purchase after estimated delivery date
+-- Expectation: No Results
+SELECT *
+FROM silver.orders_orders
+WHERE order_purchase_timestamp > order_estimated_delivery_date;
+
+-- Check for invalid date order: customer delivery before purchase
+-- Expectation: No Results
+SELECT *
+FROM silver.orders_orders
+WHERE order_purchase_timestamp > order_delivered_customer_date;
 
 
 -- ====================================================================
@@ -234,6 +258,13 @@ SELECT DISTINCT oi.seller_id
 FROM silver.orders_order_items oi
 LEFT JOIN silver.catalog_sellers s ON oi.seller_id = s.seller_id
 WHERE s.seller_id IS NULL;
+
+-- Check for invalid date order: shipping_limit_date before order purchase
+-- Expectation: No Results
+SELECT oi.*
+FROM silver.orders_order_items oi
+JOIN silver.orders_orders o ON oi.order_id = o.order_id
+WHERE oi.shipping_limit_date < o.order_purchase_timestamp;
 
 
 -- ====================================================================
