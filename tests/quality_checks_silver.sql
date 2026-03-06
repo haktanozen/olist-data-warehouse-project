@@ -256,7 +256,7 @@ WHERE price <= 0
    OR freight_value < 0;
 
 -- Check for orphan seller_ids (no match in catalog_sellers)
--- Expectation: 3 known orphan sellers — documented in load_silver header
+-- Expectation: 2 known orphan sellers — documented in load_silver header
 SELECT DISTINCT oi.seller_id
 FROM silver.orders_order_items oi
 LEFT JOIN silver.catalog_sellers s ON oi.seller_id = s.seller_id
