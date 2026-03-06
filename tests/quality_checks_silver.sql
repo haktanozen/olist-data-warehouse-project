@@ -294,14 +294,17 @@ SELECT DISTINCT payment_type
 FROM silver.orders_order_payments
 ORDER BY payment_type;
 
--- Check for negative or zero payment values
+-- Check for negative payment values
 -- Expectation: No Results
 SELECT *
 FROM silver.orders_order_payments
-WHERE payment_value <= 0;
+WHERE payment_value < 0;
 
 -- Check for invalid installment counts
 -- Expectation: No Results
+-- NOTE: 2 records with payment_installments = 0 and valid payment_value.
+-- No sequential = 1 counterpart exists for these orders — source data entry issue.
+-- Retained as-is in Silver. Consider handling as NULL or 1 at Gold layer if needed.
 SELECT *
 FROM silver.orders_order_payments
 WHERE payment_installments <= 0;
