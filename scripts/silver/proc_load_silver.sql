@@ -3,6 +3,7 @@
 STORED PROCEDURE : silver.load_silver
 DATABASE         : OlistDW
 SCHEMA           : silver
+CREATED BY       : Hako
 ================================================================================
 
 SCRIPT PURPOSE
@@ -159,6 +160,9 @@ BEGIN
         -- 3. catalog_products
         -- Transformation: TRIM + REPLACE on product_id. TRY_CAST on all numeric
         -- measurement columns (stored as NVARCHAR in Bronze) — invalid values become NULL.
+        -- Defensive guard: all numeric measurement columns — negative values
+        -- converted to NULL (CASE WHEN < 0 THEN NULL). No negatives in current dataset
+        -- but guard ensures correctness if source data changes.
         -- LEFT JOIN to category_translation to enrich with English category name;
         -- missing translations default to 'unknown' via ISNULL().
         SET @start_time = GETDATE();
@@ -181,13 +185,20 @@ BEGIN
             REPLACE(TRIM(product_id), '"', ''),
             TRIM(p.product_category_name),
             ISNULL(t.product_category_name_english, 'unknown'),
-            TRY_CAST(NULLIF(product_name_lenght, '') AS INT),
-            TRY_CAST(NULLIF(product_description_lenght, '') AS INT),
-            TRY_CAST(NULLIF(product_photos_qty, '') AS INT),
-            TRY_CAST(NULLIF(product_weight_g, '') AS INT),
-            TRY_CAST(NULLIF(product_length_cm, '') AS INT),
-            TRY_CAST(NULLIF(product_height_cm, '') AS INT),
-            TRY_CAST(NULLIF(product_width_cm, '') AS INT)
+            CASE WHEN TRY_CAST(NULLIF(product_name_lenght, '') AS INT) < 0 THEN NULL
+                 ELSE TRY_CAST(NULLIF(product_name_lenght, '') AS INT) END,
+            CASE WHEN TRY_CAST(NULLIF(product_description_lenght, '') AS INT) < 0 THEN NULL
+                 ELSE TRY_CAST(NULLIF(product_description_lenght, '') AS INT) END,
+            CASE WHEN TRY_CAST(NULLIF(product_photos_qty, '') AS INT) < 0 THEN NULL
+                 ELSE TRY_CAST(NULLIF(product_photos_qty, '') AS INT) END,
+            CASE WHEN TRY_CAST(NULLIF(product_weight_g, '') AS INT) < 0 THEN NULL
+                 ELSE TRY_CAST(NULLIF(product_weight_g, '') AS INT) END,
+            CASE WHEN TRY_CAST(NULLIF(product_length_cm, '') AS INT) < 0 THEN NULL
+                 ELSE TRY_CAST(NULLIF(product_length_cm, '') AS INT) END,
+            CASE WHEN TRY_CAST(NULLIF(product_height_cm, '') AS INT) < 0 THEN NULL
+                 ELSE TRY_CAST(NULLIF(product_height_cm, '') AS INT) END,
+            CASE WHEN TRY_CAST(NULLIF(product_width_cm, '') AS INT) < 0 THEN NULL
+                 ELSE TRY_CAST(NULLIF(product_width_cm, '') AS INT) END
         FROM bronze.catalog_products p
         LEFT JOIN bronze.catalog_category_translation t
             ON TRIM(p.product_category_name) = TRIM(t.product_category_name);
