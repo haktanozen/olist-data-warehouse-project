@@ -374,7 +374,11 @@ BEGIN
         SELECT
            NULLIF(TRIM(REPLACE(review_id,'"','')),''),
            NULLIF(TRIM(REPLACE(order_id,'"','')),''),
-           TRY_CAST(NULLIF(TRIM(REPLACE(review_score,'"','')),'') AS INT),
+           CASE WHEN TRY_CAST(NULLIF(TRIM(REPLACE(review_score,'"','')),'') AS INT) 
+           BETWEEN 1 AND 5 
+           THEN TRY_CAST(NULLIF(TRIM(REPLACE(review_score,'"','')),'') AS INT)
+           ELSE NULL 
+           END,
            NULLIF(TRIM(REPLACE(review_comment_title,'"','')),''),
            NULLIF(TRIM(REPLACE(review_comment_message,'"','')),''),
            TRY_CAST(NULLIF(TRIM(REPLACE(REPLACE(REPLACE(review_creation_date, '"', ''), CHAR(13), ''), CHAR(10), '')), '') AS DATE),
@@ -402,3 +406,4 @@ BEGIN
     END CATCH
 END
 GO
+
