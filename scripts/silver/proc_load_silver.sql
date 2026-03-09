@@ -3,7 +3,6 @@
 STORED PROCEDURE : silver.load_silver
 DATABASE         : OlistDW
 SCHEMA           : silver
-CREATED BY       : Hako
 ================================================================================
 
 SCRIPT PURPOSE
@@ -406,4 +405,5 @@ BEGIN
     END CATCH
 END
 GO
+
 
