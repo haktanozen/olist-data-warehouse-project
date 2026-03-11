@@ -38,7 +38,7 @@ BEGIN
             UNION ALL
             SELECT DATEADD(DAY, 1, full_date)
             FROM date_cte
-            WHERE full_date <= '2018-12-31'
+            WHERE full_date < '2018-12-31'
         )
         INSERT INTO gold.dim_date (
             date_key,
@@ -297,4 +297,5 @@ BEGIN
         PRINT '=========================================='
     END CATCH
 END
+
 GO
