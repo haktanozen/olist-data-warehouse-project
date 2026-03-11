@@ -78,6 +78,7 @@ BEGIN
         -- ROW_NUMBER() OVER (PARTITION BY customer_unique_id ORDER BY order_purchase_timestamp DESC)
         -- selects the most recent address per customer. rn = 1 ensures one row per customer.
         SET @start_time = GETDATE();
+        TRUNCATE TABLE gold.dim_customers;    
             WITH latest_customers AS (
                 SELECT 
                     oc.customer_unique_id,
