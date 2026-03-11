@@ -73,23 +73,41 @@ BEGIN
 
 
         -- dim_customers: grain is customer_unique_id.
-        -- DISTINCT ensures one row per unique customer regardless of order count.
+        -- Same customer_unique_id can have multiple addresses in Silver (different
+        -- zip codes/cities across orders). DISTINCT alone is insufficient.
+        -- ROW_NUMBER() OVER (PARTITION BY customer_unique_id ORDER BY order_purchase_timestamp DESC)
+        -- selects the most recent address per customer. rn = 1 ensures one row per customer.
         SET @start_time = GETDATE();
-        TRUNCATE TABLE gold.dim_customers;
-        INSERT INTO gold.dim_customers (           
-            customer_unique_id,      
-            customer_zip_code_prefix,
-            customer_city,           
-            customer_state,          
-            customer_region         
-        )
-        SELECT DISTINCT
-            customer_unique_id,
-            customer_zip_code_prefix,
-            customer_city,
-            customer_state,
-            customer_region
-        FROM silver.orders_customers;
+            WITH latest_customers AS (
+                SELECT 
+                    oc.customer_unique_id,
+                    oc.customer_zip_code_prefix,
+                    oc.customer_city,
+                    oc.customer_state,
+                    oc.customer_region,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY oc.customer_unique_id 
+                        ORDER BY o.order_purchase_timestamp DESC
+                    ) AS rn
+                FROM silver.orders_customers oc
+                JOIN silver.orders_orders o 
+                    ON oc.customer_id = o.customer_id
+            )
+            INSERT INTO gold.dim_customers (           
+                customer_unique_id,      
+                customer_zip_code_prefix,
+                customer_city,           
+                customer_state,          
+                customer_region         
+            )
+            SELECT 
+                customer_unique_id,
+                customer_zip_code_prefix,
+                customer_city,
+                customer_state,
+                customer_region
+            FROM latest_customers
+            WHERE rn = 1;
         SET @end_time = GETDATE();
         PRINT '>> dim_customers Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + 's';
         PRINT '=================================================='
@@ -297,5 +315,4 @@ BEGIN
         PRINT '=========================================='
     END CATCH
 END
-
 GO
