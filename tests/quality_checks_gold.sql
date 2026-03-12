@@ -128,11 +128,16 @@ HAVING COUNT(*) > 1 OR seller_id IS NULL;
 -- ====================================================================
 
 -- Check for NULLs in key columns
--- Expectation: No Results
+-- Expectation: order_id should never be NULL.
+-- order_item_id: 775 NULL records expected — orders with no matching entry
+-- in orders_order_items (statuses: canceled, unavailable, shipped, invoiced,
+-- created). Source data issue carried through from Silver, retained as-is.
 SELECT *
 FROM gold.fact_orders
 WHERE order_id IS NULL
    OR order_item_id IS NULL;
+
+
 
 -- Check for invalid derived column: total_order_value negative
 -- Expectation: No Results
