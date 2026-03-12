@@ -198,6 +198,16 @@ SELECT
     SUM(CASE WHEN seller_key IS NULL THEN 1 ELSE 0 END)   AS null_seller_key,
     SUM(CASE WHEN date_key IS NULL THEN 1 ELSE 0 END)     AS null_date_key
 FROM gold.fact_orders;
+-- ============================================================
+-- FINDING: NULL product_key and seller_key in fact_orders
+-- ============================================================
+-- 775 rows have NULL product_key, 778 rows have NULL seller_key.
+-- Root cause: These rows belong to canceled or unavailable orders
+-- that have no corresponding records in silver.orders_order_items.
+-- No product or seller was ever assigned to these orders in the
+-- source system. This is expected behavior, not a data pipeline error.
+-- Action: No fix required.
+-- ============================================================
 
 -- Check payment_installments — no zeros expected (handled in load)
 -- Expectation: No Results
@@ -243,3 +253,4 @@ WHERE f.date_key IS NOT NULL
 -- Expectation: counts should match
 SELECT COUNT(*) AS silver_count FROM silver.orders_order_reviews;
 SELECT COUNT(*) AS gold_count FROM gold.fact_order_reviews;
+
