@@ -1,4 +1,3 @@
-
 # Olist Brazilian E-Commerce Data Warehouse
 
 A end-to-end data warehouse project built on the [Olist Brazilian E-Commerce public dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce), implementing the **Medallion Architecture** (Bronze → Silver → Gold) on SQL Server.
@@ -51,7 +50,9 @@ dim_customers ── fact_orders ── dim_products
 
 ### Tables
 
-**fact_orders** — One row per order. Contains surrogate keys to all dimensions plus measures (total_order_value, delivery_days, is_late).
+**fact_orders** — One row per order item. Contains surrogate keys to all dimensions plus measures (total_order_value, delivery_days, is_late).
+
+**fact_order_reviews** — One row per customer review. Contains review score, comment, and a FK to dim_date via review_creation_date.
 
 **dim_customers** — One row per unique customer (grain: customer_unique_id). Includes location data.
 
@@ -78,6 +79,11 @@ olist-dwh/
 │   ├── load_gold.sql
 │   ├── indexes_gold.sql
 │   └── quality_checks_gold.sql
+├── docs/
+│   ├── data_dictionary.md
+│   ├── data_flow.md
+│   ├── known_issues.md
+│   └── design_decisions.md
 └── README.md
 ```
 
